@@ -3,6 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CpfValidator } from '../validators/cpf-validator';
 import { ComparaValidator } from '../validators/comparacao-validator';
+import { UsuariosService } from '../services/usuarios.service';
+import { AlertController } from '@ionic/angular';
+import { Usuario } from '../models/Usuario';
 
 
 @Component({
@@ -49,7 +52,12 @@ export class RegistroPage implements OnInit {
     ]
   };
 
-  constructor(private formBuilder: FormBuilder, private router: Router) {
+  constructor(
+    private formBuilder: FormBuilder, 
+    private usuariosService: UsuariosService,
+    public alertController: AlertController,
+    public router: Router) {
+
     this.formRegistro = formBuilder.group({
       email: ['', Validators.compose([Validators.required])],
       senha1: ['', Validators.compose([Validators.required, Validators.minLength(6)])],
@@ -66,15 +74,45 @@ export class RegistroPage implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.usuariosService.buscarTodos();
+    console.log(this.usuariosService.listaUsuarios);
   }
 
-  public salvar() {
-    if (this.formRegistro.valid) {
-      console.log('formulário válido!');
-      this.router.navigateByUrl('/home');
-    } else {
-      console.log('formulário inválido.')
+  public async salvarFormulario(){
+    if(this.formRegistro.valid){
+
+      let usuario = new Usuario();
+      usuario.nome = this.formRegistro.value.nome;
+      usuario.cpf = this.formRegistro.value.cpf;
+      usuario.dataNascimento = new Date(this.formRegistro.value.dataNascimento);
+      usuario.genero = this.formRegistro.value.genero;
+      usuario.celular = this.formRegistro.value.celular;
+      usuario.email = this.formRegistro.value.email;
+      usuario.senha = this.formRegistro.value.senha;
+
+      if(await this.usuariosService.salvar(usuario)){
+        this.exibirAlerta('SUCESSO!', 'Usuário salvo com sucesso!');
+        this.router.navigateByUrl('/login');
+      }else{
+        this.exibirAlerta('ERRO!', 'Erro ao salvar o usuário!');
+        this.router.navigateByUrl('/login');
+      }
+
+    }else{
+      this.exibirAlerta('ADVERTENCIA', 'Formulário inválido<br/>Verifique os campos do seu formulário!')
     }
   }
+
+  
+  async exibirAlerta(titulo:string, mensagem: string) {
+    const alert = await this.alertController.create({
+      header: titulo,
+      message: mensagem,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
 }
