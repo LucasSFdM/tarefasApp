@@ -7,7 +7,7 @@ import { Usuario } from '../models/Usuario';
 })
 export class UsuariosService {
 
-  public listaUsuarios: [];
+  public listaUsuarios = [];
 
   constructor(private armazenamentoService: ArmazenamentoService) { }
 
