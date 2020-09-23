@@ -63,4 +63,24 @@ export class UsuariosService {
   public async removerUsuarioLogado(){
     return await this.armazenamentoService.removerDados('usuarioLogado');
   }
+
+  public async alterar(usuario: Usuario){ //método
+    if(!usuario){ // exclamação é se o usuário não for válido
+      return false; // vai retornar falso
+    }
+
+    await this.buscarTodos(); // vai atualizar a lista de usuários
+
+    const index = this.listaUsuarios.findIndex(usuarioArmazenado =>{ // encontrar qual a posição que o usuário está armazenado dentro do array
+      return usuarioArmazenado.email == usuario.email;
+    });
+
+    const usuarioTemporario = this.listaUsuarios[index] as Usuario; // serve para não perder os dados de senha
+
+    usuario.senha = usuarioTemporario.senha; // está pegando a senha dos dados armazenados e colocando no temporário
+
+    this.listaUsuarios[index] = usuario; // colocando dentro da lista na mesma posição onde estava
+
+    return await this.armazenamentoService.salvarDados('usuarios', this.listaUsuarios); // salvando os dados
+  }
 }
